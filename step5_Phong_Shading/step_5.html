@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jyotsna Ramanan- 76830614</title>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        attribute  vec4 vPosition;
+        attribute vec4 vNormal;
+        varying vec3 N, L, E;
+        varying vec4 fPosition;
+
+        uniform vec4 lightPosition;
+        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;
+
+        void main() 
+        {
+            vec3 pos = -(modelViewMatrix * vPosition).xyz;
+            vec3 light = lightPosition.xyz;
+            L = normalize(light - pos);
+            E = -pos;
+            N = normalize((modelViewMatrix * vNormal).xyz);
+            gl_Position = projectionMatrix * modelViewMatrix * vPosition/vPosition.w;
+            fPosition = vPosition;
+        }
+</script>
+
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        precision mediump float;
+
+        varying vec4 fPosition;
+        varying vec4 fColor;
+        varying vec3 N, L, E;
+
+        void
+        main()
+        {
+            vec4 fColor;
+
+            vec3 H = normalize(L + E);
+            float ambient = 1.0;
+            float diffuse = 0.8 * max(dot(L, N), 0.0);
+            float specular = 0.5 * pow(max(dot(N, H), 0.0), 20.0);
+
+            if(dot(L, N) < 0.0) {
+                specular = 0.0;
+            }
+
+            float sea = 0.0;
+            float land = 0.01;
+            float mountain = 0.3;
+            float snow = .4;
+            float max = .6;
+
+            /*shading*/
+
+            if(fPosition.y <= sea) {
+                gl_FragColor = vec4(0.0, 0.5, 0.0 - (sea - fPosition.y), 1.0) * (ambient + diffuse) + vec4(1.0) * specular;
+            } else if(fPosition.y > sea && fPosition.y <= land) {
+                gl_FragColor = vec4(0.8, 0.5, .2 - (sea - fPosition.y), 1.0) * (ambient + diffuse) + vec4(1.0) * specular;
+            } else if(fPosition.y > land && fPosition.y <= snow) {
+                gl_FragColor = vec4(0.6 - (snow - fPosition.y), 0.3 - (snow - fPosition.y), 0.2 - (snow - fPosition.y), 1.0) * (ambient + diffuse) + vec4(1.0) * specular;  
+            } else {
+                gl_FragColor = vec4(1.0 - (max - fPosition.y), 1.0, 1.0 - (max - fPosition.y), 1.0) * (ambient + diffuse) + vec4(1.0) * specular;
+            }
+        }
+    </script>
+
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script type="text/javascript" src="step_5.js"></script>
+    
+</head>
+<body>
+<canvas id="gl-canvas" width="512" height="512">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+</body>
+</html>
